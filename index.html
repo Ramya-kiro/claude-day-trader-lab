@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Claude Day Trader Lab – Indicator Setup Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root{
+      --bg: #050816;
+      --card: #0f172a;
+      --accent: #38bdf8;
+      --accent-soft: #0ea5e9;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --danger: #f97373;
+      --border: #1f2937;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:var(--sans);
+      background:radial-gradient(circle at top,#0b1120 0,var(--bg) 55%);
+      color:var(--text);
+      line-height:1.6;
+      -webkit-font-smoothing:antialiased;
+    }
+    a{color:var(--accent-soft);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+    .shell{
+      max-width:1100px;
+      margin:0 auto;
+      padding:24px 16px 64px;
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:32px;
+    }
+    .logo{
+      font-weight:700;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:.9rem;
+      color:var(--accent);
+    }
+    nav a{
+      margin-left:20px;
+      font-size:.9rem;
+      color:var(--muted);
+    }
+    nav a:hover{color:var(--accent-soft);}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.4);
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--muted);
+      margin-bottom:16px;
+    }
+    .pill span{
+      width:6px;height:6px;border-radius:999px;
+      background:var(--accent-soft);
+      margin-right:8px;
+    }
+    .hero{
+      display:grid;
+      grid-template-columns:minmax(0,3fr) minmax(0,2.2fr);
+      gap:32px;
+      align-items:center;
+      margin-bottom:48px;
+    }
+    @media(max-width:900px){
+      .hero{grid-template-columns:1fr;}
+    }
+    h1{
+      font-size:2.4rem;
+      line-height:1.1;
+      margin-bottom:16px;
+    }
+    h1 span{color:var(--accent-soft);}
+    .hero p{color:var(--muted);max-width:34rem;margin-bottom:20px;}
+    .hero-cta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-bottom:8px;
+    }
+    .btn{
+      padding:10px 18px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-size:.9rem;
+      font-weight:500;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .btn-primary{
+      background:var(--accent-soft);
+      color:#020617;
+      box-shadow:0 10px 30px rgba(56,189,248,.35);
+    }
+    .btn-outline{
+      background:transparent;
+      color:var(--accent-soft);
+      border:1px solid rgba(148,163,184,.5);
+    }
+    .hero-note{font-size:.8rem;color:var(--muted);}
+    .hero-note strong{color:var(--danger);}
+    .card{
+      background:radial-gradient(circle at top left,#0b1120 0,var(--card) 55%);
+      border-radius:18px;
+      border:1px solid var(--border);
+      padding:18px 18px 16px;
+      box-shadow:0 18px 45px rgba(15,23,42,.8);
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:10px;
+      font-size:.8rem;
+      color:var(--muted);
+    }
+    .badge{
+      padding:2px 8px;
+      border-radius:999px;
+      background:rgba(56,189,248,.08);
+      color:var(--accent-soft);
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .code{
+      font-family:var(--mono);
+      font-size:.75rem;
+      background:#020617;
+      border-radius:10px;
+      padding:10px 12px;
+      border:1px solid #111827;
+      color:#e5e7eb;
+      margin-bottom:10px;
+      white-space:pre-wrap;
+    }
+    .code span.key{color:#38bdf8;}
+    .code span.val{color:#a5b4fc;}
+    .code span.cmt{color:#64748b;}
+    .claude-bubble{
+      margin-top:8px;
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(15,23,42,.9);
+      border:1px solid rgba(148,163,184,.4);
+      font-size:.75rem;
+      color:var(--muted);
+    }
+    .claude-bubble strong{color:var(--accent-soft);}
+    section{margin-bottom:40px;}
+    section h2{
+      font-size:1.3rem;
+      margin-bottom:10px;
+    }
+    section p{color:var(--muted);font-size:.9rem;}
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:20px;
+    }
+    @media(max-width:800px){
+      .grid-2{grid-template-columns:1fr;}
+    }
+    .list{
+      margin-top:10px;
+      font-size:.85rem;
+      color:var(--muted);
+    }
+    .list li{margin-bottom:6px;}
+    .tag{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.4);
+      font-size:.7rem;
+      color:var(--muted);
+      margin-right:6px;
+      margin-bottom:4px;
+    }
+    .faq-item{
+      margin-top:12px;
+      padding-top:10px;
+      border-top:1px solid var(--border);
+      font-size:.85rem;
+    }
+    .faq-item strong{display:block;margin-bottom:4px;}
+    footer{
+      margin-top:24px;
+      font-size:.75rem;
+      color:var(--muted);
+      border-top:1px solid var(--border);
+      padding-top:12px;
+    }
+    footer strong{color:var(--danger);}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="logo">Claude Day Trader Lab</div>
+      <nav>
+        <a href="#how">How Claude Helps</a>
+        <a href="#setup">Indicator Setup</a>
+        <a href="#routine">Daily Routine</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero">
+        <div>
+          <div class="pill"><span></span>Day trading · Indicator workflow · Claude‑assisted learning</div>
+          <h1>Build a <span>day‑trading indicator setup</span> with Claude as your coach.</h1>
+          <p>
+            This site shows you how to structure a clean, repeatable indicator layout for day trading—
+            and how to use Claude to explain what you’re seeing, step by step. No signals. No hype.
+            Just a workflow you can actually understand.
+          </p>
+          <div class="hero-cta">
+            <button class="btn btn-primary">Start with the core setup</button>
+            <button class="btn btn-outline">Ask Claude about an indicator</button>
+          </div>
+          <div class="hero-note">
+            <strong>Important:</strong> Educational only. No trade alerts, no predictions, no financial advice.
+          </div>
+        </div>
+
+        <!-- CLAUDE PANEL -->
+        <aside class="card">
+          <div class="card-header">
+            <span>Claude · Indicator Coach</span>
+            <span class="badge">Live prompt example</span>
+          </div>
+          <div class="code">
+<span class="cmt">// Ask Claude to explain your chart, not to pick trades.</span>
+<span class="key">Prompt:</span> <span class="val">“I’m day trading 5‑minute candles on AAPL with EMA 9/21, VWAP, RSI 14, and volume.</span>
+<span class="val">Explain what each indicator is telling me right now, and what conditions I should be watching for—</span>
+<span class="val">without telling me what to buy or sell.”</span>
+          </div>
+          <div class="claude-bubble">
+            <strong>Claude might respond:</strong> “Your 9/21 EMAs show short‑term trend, VWAP shows where volume is anchored,
+            RSI highlights momentum extremes, and volume confirms whether moves are likely to be meaningful.
+            I’ll describe what each is doing on this candle and what that usually implies—without giving you a trade.”
+          </div>
+        </aside>
+      </section>
+
+      <!-- HOW CLAUDE HELPS -->
+      <section id="how">
+        <h2>How Claude fits into your day‑trading workflow</h2>
+        <p>
+          Claude is best used as a **teacher and explainer**, not as a signal generator. You bring the data:
+          screenshots, indicator values, your plan. Claude helps you understand what your setup is showing.
+        </p>
+        <div class="grid-2 list">
+          <div>
+            <strong>Claude can help you:</strong>
+            <ul>
+              <li>Clarify what each indicator measures and why it matters.</li>
+              <li>Describe how your EMAs, VWAP, RSI, and volume interact.</li>
+              <li>Outline checklists for entries, risk, and exits (in general terms).</li>
+              <li>Review your journaled trades and highlight patterns.</li>
+            </ul>
+          </div>
+          <div>
+            <strong>Claude will not:</strong>
+            <ul>
+              <li>Tell you what to buy, sell, or short.</li>
+              <li>Predict which stock will “blow up” next.</li>
+              <li>Guarantee profits or reduce risk to zero.</li>
+              <li>Replace your own risk management or judgment.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- INDICATOR SETUP -->
+      <section id="setup">
+        <h2>Core indicator setup for intraday charts</h2>
+        <p>
+          This is a **common educational layout** many day traders study. It’s not a recommendation—just a structured way
+          to see trend, value, momentum, and participation at a glance.
+        </p>
+        <div class="list">
+          <ul>
+            <li><strong>Timeframe:</strong> 5‑minute candles (with 1‑minute and 15‑minute as context).</li>
+            <li><strong>Trend:</strong> EMA 9 &amp; EMA 21 on price.</li>
+            <li><strong>Value:</strong> Session VWAP on price.</li>
+            <li><strong>Momentum:</strong> RSI 14 under the chart.</li>
+            <li><strong>Participation:</strong> Volume bars with average volume line.</li>
+          </ul>
+        </div>
+
+        <p style="margin-top:10px;font-size:.85rem;color:var(--muted);">
+          Use Claude to walk through this setup on any ticker you’re studying. Ask it to explain what each indicator is
+          doing on the current candle, and how that compares to your rules.
+        </p>
+
+        <div style="margin-top:12px;">
+          <span class="tag">EMA 9/21</span>
+          <span class="tag">VWAP</span>
+          <span class="tag">RSI 14</span>
+          <span class="tag">Volume</span>
+          <span class="tag">5‑minute</span>
+        </div>
+      </section>
+
+      <!-- LAYOUT -->
+      <section>
+        <h2>Suggested chart layout</h2>
+        <div class="grid-2">
+          <div>
+            <p><strong>Top panel (price):</strong></p>
+            <ul class="list">
+              <li>Candles with EMA 9 (fast) and EMA 21 (slow).</li>
+              <li>VWAP line across the session.</li>
+              <li>Pre‑market high/low lines (optional).</li>
+            </ul>
+            <p style="margin-top:8px;"><strong>Middle panel (momentum):</strong></p>
+            <ul class="list">
+              <li>RSI 14 with 30/70 bands.</li>
+            </ul>
+            <p style="margin-top:8px;"><strong>Bottom panel (volume):</strong></p>
+            <ul class="list">
+              <li>Volume bars with a 20‑period average volume line.</li>
+            </ul>
+          </div>
+          <div>
+            <p><strong>Ask Claude to narrate your layout:</strong></p>
+            <div class="code">
+<span class="cmt">// Example prompt</span>
+“Here’s my 5‑minute chart on TSLA:
+- EMA 9 is above EMA 21 and both are sloping up.
+- Price is slightly above VWAP.
+- RSI is at 63 and rising.
+- Volume is above average on this candle.
+
+Explain what this combination usually means in day‑trading terms,
+and what conditions I might watch for next—without telling me to enter a trade.”
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ROUTINE -->
+      <section id="routine">
+        <h2>Day‑trading routine using this setup</h2>
+        <div class="grid-2">
+          <div class="list">
+            <strong>Pre‑market</strong>
+            <ul>
+              <li>Scan for gappers and news catalysts.</li>
+              <li>Mark pre‑market high/low and key levels.</li>
+              <li>Ask Claude to summarize the catalyst and risks.</li>
+            </ul>
+            <strong style="margin-top:10px;display:block;">At the open</strong>
+            <ul>
+              <li>Watch how price behaves around VWAP.</li>
+              <li>Note whether EMA 9/21 align with your bias.</li>
+              <li>Use Claude to describe the first 3–5 candles objectively.</li>
+            </ul>
+          </div>
+          <div class="list">
+            <strong>Mid‑session</strong>
+            <ul>
+              <li>Avoid over‑trading chop; let EMAs and VWAP show structure.</li>
+              <li>Use RSI and volume to filter weak moves.</li>
+              <li>Ask Claude to review screenshots of good vs. bad trades.</li>
+            </ul>
+            <strong style="margin-top:10px;display:block;">End of day</strong>
+            <ul>
+              <li>Export screenshots of your charts and trades.</li>
+              <li>Journal your decisions and emotions.</li>
+              <li>Have Claude highlight patterns in your journal over time.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="faq">
+        <h2>FAQ & Safety</h2>
+        <div class="faq-item">
+          <strong>Is this financial advice?</strong>
+          <span>No. This site and any Claude prompts are for **education only**. You are fully responsible for your own trades and risk.</span>
+        </div>
+        <div class="faq-item">
+          <strong>Can Claude tell me what to buy or sell?</strong>
+          <span>No. Claude should be used to **explain** indicators, not to generate signals or predictions.</span>
+        </div>
+        <div class="faq-item">
+          <strong>What markets does this apply to?</strong>
+          <span>The indicator concepts (trend, value, momentum, volume) are general, but you must adapt them to your own market, instrument, and rules.</span>
+        </div>
+        <div class="faq-item">
+          <strong>How do I practice safely?</strong>
+          <span>Use paper trading or very small size while you learn. Focus on **process, journaling, and consistency** before risk.</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <strong>Risk disclaimer:</strong> Day trading is risky and can result in substantial financial loss.  
+      This site and any Claude interactions are for educational purposes only and do not constitute financial advice,
+      recommendations, or guarantees of performance.
+    </footer>
+  </div>
+</body>
+</html>
